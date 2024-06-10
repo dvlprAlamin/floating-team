@@ -1,6 +1,12 @@
 import React, { forwardRef, useMemo, useRef, useState } from "react";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
-import { BufferGeometry, Raycaster, TextureLoader, Vector3 } from "three";
+import {
+  BufferGeometry,
+  MathUtils,
+  Raycaster,
+  TextureLoader,
+  Vector3,
+} from "three";
 import { Float, Html, Text } from "@react-three/drei";
 import gsap from "gsap";
 
@@ -110,8 +116,23 @@ const FloatingImagesV4 = ({ setCursor }) => {
   const imagesRef = useRef([]);
   const linesRef = useRef([]);
   const raycaster = useMemo(() => new Raycaster(), []);
-  useFrame(({ pointer }) => {
+  const offset = useRef(Math.random() * 10000);
+  useFrame(({ pointer, clock }) => {
+    const t = offset.current + clock.getElapsedTime();
+    let yPosition = Math.sin((t / 4) * 1) / 10;
+    yPosition = MathUtils.mapLinear(yPosition, -0.1, 0.1, -0.1, 0.1);
+    console.log("yPosition", yPosition);
+
+    raycaster.setFromCamera(pointer, camera);
+    const intersectsImage = raycaster.intersectObjects(imagesRef.current);
+    console.log("intersectsImage", intersectsImage);
+    if (intersectsImage.length > 0) {
+      document.body.style.cursor = "grab";
+    } else {
+      document.body.style.cursor = "default";
+    }
     if (draggedIndex !== null) {
+      document.body.style.cursor = "grabbing";
       const image = imagesRef.current[draggedIndex];
       //   const line = linesRef.current[draggedIndex];
       //   console.log("line", line);
@@ -121,7 +142,6 @@ const FloatingImagesV4 = ({ setCursor }) => {
         linesRef.current[
           draggedIndex === 0 ? initialPositions.length - 1 : draggedIndex - 1
         ];
-      console.log("line", line);
 
       gsap.to(image.scale, {
         // Animate to new position smoothly
@@ -131,8 +151,7 @@ const FloatingImagesV4 = ({ setCursor }) => {
         duration: 1, // Duration of animation
         ease: "power2.out", // Easing function
       });
-      console.log("image.position", image.position);
-      raycaster.setFromCamera(pointer, camera);
+      //   raycaster.setFromCamera(pointer, camera);
       const intersects = raycaster.intersectObject(planeRef.current);
       if (intersects.length > 0) {
         const intersect = intersects[0];

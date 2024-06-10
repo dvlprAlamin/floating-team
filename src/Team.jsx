@@ -1,7 +1,7 @@
 // src/components/TeamSection.js
 import React, { useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, OrthographicCamera } from "@react-three/drei";
+import { OrbitControls, OrthographicCamera, Stats } from "@react-three/drei";
 import FloatingImages from "./Team/FloatingImages";
 import FloatingImagesV2 from "./Team/FloatingImagesv2";
 import FloatingImagesV3 from "./Team/FloatingImagesv3";
@@ -12,8 +12,8 @@ const TeamSection = () => {
   return (
     <div
       style={{
-        cursor,
-        height: "100vh",
+        maxWidth: "100vw",
+        aspectRatio: "15/7",
         backgroundColor: "#010313",
         backgroundImage: "url('/map.png')",
         backgroundRepeat: "no-repeat",
@@ -22,6 +22,7 @@ const TeamSection = () => {
       }}
     >
       <Canvas>
+        <Stats />
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
         {/* <OrbitControls /> */}

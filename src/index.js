@@ -8,7 +8,7 @@ import NewVersion from './NewVersion'
 import TeamSection from './Team'
 
 createRoot(document.getElementById('root')).render(
-  <>
+  <div style={{ background: "#010313", height: "100vh" }}>
     {/* <App
       data={[
         { color: '#444', image: '/team-members/Abu_Sufian.jpg', scale: 1.5, text: 'from' },
@@ -149,5 +149,5 @@ createRoot(document.getElementById('root')).render(
     <TeamSection />
 
 
-  </>,
+  </div>,
 )
