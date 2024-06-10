@@ -6,9 +6,9 @@ import FloatingImages from "./Team/FloatingImages";
 import FloatingImagesV2 from "./Team/FloatingImagesv2";
 import FloatingImagesV3 from "./Team/FloatingImagesv3";
 import FloatingImagesV4 from "./Team/FloatingImagesv4";
+import FloatingImagesV5 from "./Team/FloatingImagesv5";
 
 const TeamSection = () => {
-  const [cursor, setCursor] = useState("default");
   return (
     <div
       style={{
@@ -27,7 +27,7 @@ const TeamSection = () => {
         <pointLight position={[10, 10, 10]} />
         {/* <OrbitControls /> */}
         {/* <OrthographicCamera makeDefault position={[0, 0, -1]} zoom={100}> */}
-        <FloatingImagesV4 setCursor={setCursor} />
+        {/* <FloatingImagesV5 /> */}
         {/* </OrthographicCamera> */}
       </Canvas>
     </div>

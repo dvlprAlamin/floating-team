@@ -6,6 +6,7 @@ import { App } from './App'
 import Test from './Test'
 import NewVersion from './NewVersion'
 import TeamSection from './Team'
+import FloatingImagesV5 from './Team/FloatingImagesv5'
 
 createRoot(document.getElementById('root')).render(
   <div style={{ background: "#010313", height: "100vh" }}>
@@ -146,8 +147,8 @@ createRoot(document.getElementById('root')).render(
         { color: '#ff4060', image: '/team-members/Farhan-Elias.jpeg', scale: 1.25, text: 'hercules' },
       ]}
     /> */}
-    <TeamSection />
-
+    {/* <TeamSection /> */}
+    <FloatingImagesV5 />
 
   </div>,
 )
