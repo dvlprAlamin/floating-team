@@ -24,13 +24,34 @@ const imagePaths = [
   "/team-members/Farhan-Elias.jpeg",
 ];
 
-const FloatingImagesV2 = ({ setCursor }) => {
+const generateLines = (positions) => {
+  const lines = [];
+  for (let i = 0; i < positions.length; i++) {
+    if (i === positions.length - 1) {
+      const line = new BufferGeometry().setFromPoints([
+        new Vector3(...positions[i]),
+        new Vector3(...positions[0]),
+      ]);
+      lines.push(line);
+    } else {
+      const line = new BufferGeometry().setFromPoints([
+        new Vector3(...positions[i]),
+        new Vector3(...positions[i + 1]),
+      ]);
+      lines.push(line);
+    }
+  }
+  return lines;
+};
+
+const FloatingImagesV4 = ({ setCursor }) => {
   const images = useLoader(TextureLoader, imagePaths);
   const bg = useLoader(TextureLoader, ["/bgg.png"]);
   //   const initialPositions = useMemo(
   //     () => generatePositions(imagePaths.length, 1, 1),
   //     []
   //   );
+
   const initialPositions = [
     [-4.75, 3, 0],
     [-3.6, 2, 0],
@@ -56,7 +77,8 @@ const FloatingImagesV2 = ({ setCursor }) => {
     1, 1.3,
   ];
 
-  console.log("initialPositions", initialPositions);
+  const lines = useMemo(() => generateLines(initialPositions), []);
+  console.log("lines", lines);
   //   const initialPositions = useMemo(
   //     () =>
   //       imagePaths.map(() => ({
@@ -79,6 +101,9 @@ const FloatingImagesV2 = ({ setCursor }) => {
     setDraggedIndex(null);
     console.log("index", index);
     const image = imagesRef.current[index];
+    const line = linesRef.current[index];
+    const previousLine =
+      linesRef.current[index === 0 ? initialPositions.length - 1 : index - 1];
     gsap.to(image.position, {
       // Animate back to initial position smoothly
       x: initialPositions[index][0],
@@ -95,6 +120,31 @@ const FloatingImagesV2 = ({ setCursor }) => {
       duration: 1, // Duration of animation
       ease: "power2.out", // Easing function
     });
+
+    // gsap.to(line.geometry.attributes.position.array, {
+    //   // Animate to new position smoothly
+    //   0: initialPositions[index][0],
+    //   1: initialPositions[index][1],
+    //   duration: 1, // Duration of animation
+    //   ease: "power2.out", // Easing function
+    // });
+    line.geometry.attributes.position.array[0] = initialPositions[index][0];
+    line.geometry.attributes.position.array[1] = initialPositions[index][1];
+    line.geometry.attributes.position.needsUpdate = true;
+
+    // gsap.to(previousLine.geometry.attributes.position.array, {
+    //   // Animate to new position smoothly
+    //   3: initialPositions[index][0],
+    //   4: initialPositions[index][1],
+    //   duration: 1, // Duration of animation
+    //   ease: "power2.out", // Easing function
+    // });
+
+    previousLine.geometry.attributes.position.array[3] =
+      initialPositions[index][0];
+    previousLine.geometry.attributes.position.array[4] =
+      initialPositions[index][1];
+    previousLine.geometry.attributes.position.needsUpdate = true;
     // image.material.color.set(color); // Reset color
     event.target.releasePointerCapture(event.pointerId);
     event.stopPropagation();
@@ -108,6 +158,14 @@ const FloatingImagesV2 = ({ setCursor }) => {
       const image = imagesRef.current[draggedIndex];
       //   const line = linesRef.current[draggedIndex];
       //   console.log("line", line);
+
+      const line = linesRef.current[draggedIndex];
+      const previousLine =
+        linesRef.current[
+          draggedIndex === 0 ? initialPositions.length - 1 : draggedIndex - 1
+        ];
+      console.log("line", line);
+
       gsap.to(image.scale, {
         // Animate to new position smoothly
         x: 2,
@@ -116,7 +174,7 @@ const FloatingImagesV2 = ({ setCursor }) => {
         duration: 1, // Duration of animation
         ease: "power2.out", // Easing function
       });
-
+      console.log("image.position", image.position);
       raycaster.setFromCamera(pointer, camera);
       const intersects = raycaster.intersectObject(planeRef.current);
       if (intersects.length > 0) {
@@ -129,11 +187,27 @@ const FloatingImagesV2 = ({ setCursor }) => {
           duration: 1, // Duration of animation
           ease: "power2.out", // Easing function
         });
-        initialPositions[draggedIndex] = [
-          intersect.point.x,
-          intersect.point.y,
-          0,
-        ];
+        gsap.to(line.geometry.attributes.position.array, {
+          // Animate to new position smoothly
+          0: intersect.point.x,
+          1: intersect.point.y,
+          duration: 1, // Duration of animation
+          ease: "power2.out", // Easing function
+        });
+        // line.geometry.attributes.position.array[0] = intersect.point.x;
+        // line.geometry.attributes.position.array[1] = intersect.point.y;
+        line.geometry.attributes.position.needsUpdate = true;
+
+        gsap.to(previousLine.geometry.attributes.position.array, {
+          // Animate to new position smoothly
+          3: intersect.point.x,
+          4: intersect.point.y,
+          duration: 1, // Duration of animation
+          ease: "power2.out", // Easing function
+        });
+        // previousLine.geometry.attributes.position.array[3] = intersect.point.x;
+        // previousLine.geometry.attributes.position.array[4] = intersect.point.y;
+        previousLine.geometry.attributes.position.needsUpdate = true;
       }
     }
   });
@@ -153,7 +227,7 @@ const FloatingImagesV2 = ({ setCursor }) => {
             {/* <Text scale={0.5}>{index}</Text> */}
             <meshBasicMaterial map={texture} />
           </mesh>
-          <Line
+          {/* <Line
             // ref={(el) => (linesRef.current[index] = el)}
             start={initialPositions[index]}
             end={
@@ -161,8 +235,14 @@ const FloatingImagesV2 = ({ setCursor }) => {
                 ? initialPositions[0]
                 : initialPositions[index + 1]
             }
-          />
+          /> */}
         </group>
+      ))}
+      {lines.map((line, index) => (
+        <line key={index} ref={(el) => (linesRef.current[index] = el)}>
+          <primitive attach="geometry" object={line} />
+          <lineBasicMaterial attach="material" color="lightgreen" />
+        </line>
       ))}
       <mesh ref={planeRef} visible={false}>
         <planeGeometry args={[100, 100]} />
@@ -176,7 +256,7 @@ const FloatingImagesV2 = ({ setCursor }) => {
   );
 };
 
-export default FloatingImagesV2;
+export default FloatingImagesV4;
 
 const Line = ({ start, end }) => {
   const points = useMemo(
@@ -188,7 +268,7 @@ const Line = ({ start, end }) => {
     () => new BufferGeometry().setFromPoints(points),
     []
   );
-
+  console.log("lineGeometry", lineGeometry);
   return (
     <line>
       <primitive attach="geometry" object={lineGeometry} />
