@@ -1,7 +1,7 @@
 import React, { forwardRef, useMemo, useRef, useState } from "react";
 import { useLoader, useFrame, useThree } from "@react-three/fiber";
 import { BufferGeometry, Raycaster, TextureLoader, Vector3 } from "three";
-import { Html, Text } from "@react-three/drei";
+import { Float, Html, Text } from "@react-three/drei";
 import gsap from "gsap";
 
 const imagePaths = [
@@ -51,7 +51,7 @@ const FloatingImagesV4 = ({ setCursor }) => {
   //     () => generatePositions(imagePaths.length, 1, 1),
   //     []
   //   );
-
+  const [lastDragIndex, setLastDragIndex] = useState(null);
   const initialPositions = [
     [-4.75, 3, 0],
     [-3.6, 2, 0],
@@ -93,61 +93,18 @@ const FloatingImagesV4 = ({ setCursor }) => {
   // const [positions, setPositions] = useState(initialPositions);
   const [draggedIndex, setDraggedIndex] = useState(null);
 
-  const handlePointerDown = (index) => {
+  const handlePointerDown = (event, index) => {
+    event.stopPropagation();
     setDraggedIndex(index);
   };
 
   const handlePointerUp = (event, index) => {
     setDraggedIndex(null);
-    console.log("index", index);
-    const image = imagesRef.current[index];
-    const line = linesRef.current[index];
-    const previousLine =
-      linesRef.current[index === 0 ? initialPositions.length - 1 : index - 1];
-    gsap.to(image.position, {
-      // Animate back to initial position smoothly
-      x: initialPositions[index][0],
-      y: initialPositions[index][1],
-      z: 0, //initialPositions[index][2],
-      duration: 2, // Duration of animation
-      ease: "power2.out", // Easing function
-    });
-    gsap.to(image.scale, {
-      // Animate to new position smoothly
-      x: scale[index],
-      y: scale[index],
-      z: 1, // Restrict to X and Y axes
-      duration: 1, // Duration of animation
-      ease: "power2.out", // Easing function
-    });
+    setLastDragIndex(index);
 
-    // gsap.to(line.geometry.attributes.position.array, {
-    //   // Animate to new position smoothly
-    //   0: initialPositions[index][0],
-    //   1: initialPositions[index][1],
-    //   duration: 1, // Duration of animation
-    //   ease: "power2.out", // Easing function
-    // });
-    line.geometry.attributes.position.array[0] = initialPositions[index][0];
-    line.geometry.attributes.position.array[1] = initialPositions[index][1];
-    line.geometry.attributes.position.needsUpdate = true;
-
-    // gsap.to(previousLine.geometry.attributes.position.array, {
-    //   // Animate to new position smoothly
-    //   3: initialPositions[index][0],
-    //   4: initialPositions[index][1],
-    //   duration: 1, // Duration of animation
-    //   ease: "power2.out", // Easing function
-    // });
-
-    previousLine.geometry.attributes.position.array[3] =
-      initialPositions[index][0];
-    previousLine.geometry.attributes.position.array[4] =
-      initialPositions[index][1];
-    previousLine.geometry.attributes.position.needsUpdate = true;
     // image.material.color.set(color); // Reset color
-    event.target.releasePointerCapture(event.pointerId);
-    event.stopPropagation();
+    // event.target.releasePointerCapture(event.pointerId);
+    // event.stopPropagation();
   };
 
   const imagesRef = useRef([]);
@@ -197,7 +154,6 @@ const FloatingImagesV4 = ({ setCursor }) => {
         // line.geometry.attributes.position.array[0] = intersect.point.x;
         // line.geometry.attributes.position.array[1] = intersect.point.y;
         line.geometry.attributes.position.needsUpdate = true;
-
         gsap.to(previousLine.geometry.attributes.position.array, {
           // Animate to new position smoothly
           3: intersect.point.x,
@@ -210,40 +166,86 @@ const FloatingImagesV4 = ({ setCursor }) => {
         previousLine.geometry.attributes.position.needsUpdate = true;
       }
     }
+    if (lastDragIndex !== null) {
+      setTimeout(() => {
+        setLastDragIndex(null);
+      }, 5000);
+
+      const image = imagesRef.current[lastDragIndex];
+      const line = linesRef.current[lastDragIndex];
+      const previousLine =
+        linesRef.current[
+          lastDragIndex === 0 ? initialPositions.length - 1 : lastDragIndex - 1
+        ];
+      gsap.to(image.position, {
+        // Animate back to initial position smoothly
+        x: initialPositions[lastDragIndex][0],
+        y: initialPositions[lastDragIndex][1],
+        z: 0.05, //initialPositions[lastDragIndex][2],
+        duration: 2, // Duration of animation
+        ease: "power2.out", // Easing function
+      });
+      gsap.to(image.scale, {
+        // Animate to new position smoothly
+        x: scale[lastDragIndex],
+        y: scale[lastDragIndex],
+        z: 1, // Restrict to X and Y axes
+        duration: 2, // Duration of animation
+        ease: "power2.out", // Easing function
+      });
+
+      gsap.to(line.geometry.attributes.position.array, {
+        // Animate to new position smoothly
+        0: initialPositions[lastDragIndex][0],
+        1: initialPositions[lastDragIndex][1],
+        duration: 2, // Duration of animation
+        ease: "power2.out", // Easing function
+      });
+
+      line.geometry.attributes.position.needsUpdate = true;
+
+      gsap.to(previousLine.geometry.attributes.position.array, {
+        // Animate to new position smoothly
+        3: initialPositions[lastDragIndex][0],
+        4: initialPositions[lastDragIndex][1],
+        duration: 2, // Duration of animation
+        ease: "power2.out", // Easing function
+      });
+      previousLine.geometry.attributes.position.needsUpdate = true;
+    }
   });
 
   return (
     <>
+      {/* {lines.map((line, index) => (
+        <line key={index} ref={(el) => (linesRef.current[index] = el)}>
+          <primitive attach="geometry" object={line} />
+          <lineBasicMaterial attach="material" color="lightgreen" />
+        </line>
+      ))} */}
       {images.map((texture, index) => (
         <group key={index}>
+          {/* <Float speed={2} floatIntensity={0.3}> */}
+
+          <line key={index} ref={(el) => (linesRef.current[index] = el)}>
+            <primitive attach="geometry" object={lines[index]} />
+            <lineBasicMaterial attach="material" color="lightgreen" />
+          </line>
           <mesh
             ref={(el) => (imagesRef.current[index] = el)}
             position={initialPositions[index]}
             scale={[scale[index], scale[index], 1]}
-            onPointerDown={() => handlePointerDown(index)}
+            onPointerDown={(event) => handlePointerDown(event, index)}
             onPointerUp={(event) => handlePointerUp(event, index)}
           >
             <circleGeometry args={[0.4, 64]} />
             {/* <Text scale={0.5}>{index}</Text> */}
             <meshBasicMaterial map={texture} />
           </mesh>
-          {/* <Line
-            // ref={(el) => (linesRef.current[index] = el)}
-            start={initialPositions[index]}
-            end={
-              index === initialPositions.length - 1
-                ? initialPositions[0]
-                : initialPositions[index + 1]
-            }
-          /> */}
+          {/* </Float> */}
         </group>
       ))}
-      {lines.map((line, index) => (
-        <line key={index} ref={(el) => (linesRef.current[index] = el)}>
-          <primitive attach="geometry" object={line} />
-          <lineBasicMaterial attach="material" color="lightgreen" />
-        </line>
-      ))}
+
       <mesh ref={planeRef} visible={false}>
         <planeGeometry args={[100, 100]} />
         <meshStandardMaterial color={"white"} />

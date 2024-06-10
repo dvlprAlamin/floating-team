@@ -1,7 +1,7 @@
 // src/components/TeamSection.js
 import React, { useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, OrthographicCamera } from "@react-three/drei";
 import FloatingImages from "./Team/FloatingImages";
 import FloatingImagesV2 from "./Team/FloatingImagesv2";
 import FloatingImagesV3 from "./Team/FloatingImagesv3";
@@ -25,7 +25,9 @@ const TeamSection = () => {
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
         {/* <OrbitControls /> */}
+        {/* <OrthographicCamera makeDefault position={[0, 0, -1]} zoom={100}> */}
         <FloatingImagesV4 setCursor={setCursor} />
+        {/* </OrthographicCamera> */}
       </Canvas>
     </div>
   );
