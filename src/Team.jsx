@@ -21,13 +21,13 @@ const TeamSection = () => {
         backgroundPosition: "center",
       }}
     >
-      <Canvas>
+      <Canvas orthographic camera={{ zoom: 80 }}>
         <Stats />
-        <ambientLight />
-        <pointLight position={[10, 10, 10]} />
+        {/* <ambientLight />
+        <pointLight position={[10, 10, 10]} /> */}
         {/* <OrbitControls /> */}
         {/* <OrthographicCamera makeDefault position={[0, 0, -1]} zoom={100}> */}
-        {/* <FloatingImagesV5 /> */}
+        <FloatingImagesV5 />
         {/* </OrthographicCamera> */}
       </Canvas>
     </div>

@@ -10,7 +10,12 @@ import {
   useEffect,
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { QuadraticBezierLine, Text } from "@react-three/drei";
+import {
+  Float,
+  QuadraticBezierLine,
+  Text,
+  useTexture,
+} from "@react-three/drei";
 import { useDrag } from "@use-gesture/react";
 
 const context = createContext();
@@ -64,20 +69,18 @@ export function Nodes({ children }) {
     <context.Provider value={set}>
       <group ref={group}>
         {lines.map((line, index) => (
-          <group>
+          <group key={index}>
             <QuadraticBezierLine
-              key={index}
               {...line}
-              color="white"
+              color="#54CF68"
               dashed
-              dashScale={50}
-              gapSize={20}
+              dashScale={20}
+              gapSize={4}
             />
             <QuadraticBezierLine
-              key={index}
               {...line}
-              color="white"
-              lineWidth={0.5}
+              color="#54CF68"
+              lineWidth={1}
               transparent
               opacity={0.1}
             />
@@ -97,9 +100,18 @@ export function Nodes({ children }) {
 
 export const Node = forwardRef(
   (
-    { color = "black", name, connectedTo = [], position = [0, 0, 0], ...props },
+    {
+      color = "black",
+      name,
+      connectedTo = [],
+      position = [0, 0, 0],
+      scale,
+      image,
+      ...props
+    },
     ref
   ) => {
+    const texture = useTexture("/team-members/alamin_bro.jpg");
     const set = useContext(context);
     const { size, camera } = useThree();
     const [pos, setPos] = useState(() => new THREE.Vector3(...position));
@@ -120,39 +132,53 @@ export const Node = forwardRef(
     );
     const bind = useDrag(({ down, xy: [x, y] }) => {
       document.body.style.cursor = down ? "grabbing" : "grab";
-      setPos(
-        new THREE.Vector3(
-          (x / size.width) * 2 - 1,
-          -(y / size.height) * 2 + 1,
-          0
-        )
-          .unproject(camera)
-          .multiply({ x: 1, y: 1, z: 0 })
-          .clone()
-      );
+      if (!down) {
+        setPos(new THREE.Vector3(...position));
+      } else {
+        setPos(
+          new THREE.Vector3(
+            (x / size.width) * 2 - 1,
+            -(y / size.height) * 2 + 1,
+            0
+          )
+            .unproject(camera)
+            .multiply({ x: 1, y: 1, z: 0 })
+            .clone()
+        );
+      }
     });
     return (
-      <Circle
-        ref={ref}
-        {...bind()}
-        opacity={0.2}
-        radius={0.5}
-        color={color}
-        position={pos}
-        {...props}
-      >
+      <Float speed={1} floatingRange={[-0.15, 0.15]}>
         <Circle
-          radius={0.25}
-          position={[0, 0, 0.1]}
-          onPointerOver={() => setHovered(true)}
-          onPointerOut={() => setHovered(false)}
-          color={hovered ? "#ff1050" : color}
+          ref={ref}
+          {...bind()}
+          opacity={0.2}
+          radius={0.5}
+          color={color}
+          position={pos}
+          scale={scale}
+          {...props}
         >
-          <Text position={[0, 0, 1]} fontSize={0.25}>
-            {name}
-          </Text>
+          <Circle
+            radius={0.25}
+            position={[0, 0, 0.1]}
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={() => setHovered(false)}
+            color={hovered ? "#ff1050" : color}
+          >
+            <mesh
+              position={[0, 0, 0.3]}
+              rotation={[Math.PI * 0.5, Math.PI * 0.5, 0.1]}
+            >
+              <cylinderGeometry args={[0.5, 0.5, 0.2, 32, 1]} />
+              <meshBasicMaterial map={image} toneMapped={false} />
+            </mesh>
+            {/* <Text position={[0, 0, 1]} fontSize={0.25}>
+              {name}
+            </Text> */}
+          </Circle>
         </Circle>
-      </Circle>
+      </Float>
     );
   }
 );

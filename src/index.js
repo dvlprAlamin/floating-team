@@ -147,8 +147,7 @@ createRoot(document.getElementById('root')).render(
         { color: '#ff4060', image: '/team-members/Farhan-Elias.jpeg', scale: 1.25, text: 'hercules' },
       ]}
     /> */}
-    {/* <TeamSection /> */}
-    <FloatingImagesV5 />
+    <TeamSection />
 
   </div>,
 )
