@@ -3,10 +3,13 @@
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { App } from './App'
+import Test from './Test'
+import NewVersion from './NewVersion'
+import TeamSection from './Team'
 
 createRoot(document.getElementById('root')).render(
   <>
-    <App
+    {/* <App
       data={[
         { color: '#444', image: '/team-members/Abu_Sufian.jpg', scale: 1.5, text: 'from' },
         { color: '#444', image: '/team-members/Abul_Hashem_Mohon.webp', scale: 1, text: 'the' },
@@ -142,10 +145,9 @@ createRoot(document.getElementById('root')).render(
         { color: '#444', image: '/team-members/Md-Abdullah-All-Naim.jpeg', scale: 1, text: 'of' },
         { color: '#ff4060', image: '/team-members/Farhan-Elias.jpeg', scale: 1.25, text: 'hercules' },
       ]}
-    />
-    <div style={{ height: "100vh" }}>
+    /> */}
+    <TeamSection />
 
-    </div>
 
   </>,
 )
