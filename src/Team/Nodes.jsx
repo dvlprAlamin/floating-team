@@ -10,13 +10,10 @@ import {
   useEffect,
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import {
-  Float,
-  QuadraticBezierLine,
-  Text,
-  useTexture,
-} from "@react-three/drei";
+import { Center, QuadraticBezierLine, Text3D } from "@react-three/drei";
 import { useDrag } from "@use-gesture/react";
+import { Float } from "./Float";
+import * as TWEEN from "@tweenjs/tween.js";
 
 const context = createContext();
 const Circle = forwardRef(
@@ -53,18 +50,19 @@ export function Nodes({ children }) {
         .map((ref) => [node.position, ref.current.position])
         .forEach(([start, end]) =>
           lines.push({
-            start: start.clone().add({ x: 0.35, y: 0, z: 0 }),
-            end: end.clone().add({ x: -0.35, y: 0, z: 0 }),
+            start: start.clone().add({ x: 0, y: 0, z: -0.15 }),
+            end: end.clone().add({ x: 0, y: 0, z: -0.15 }),
           })
         );
     return lines;
   }, [nodes]);
-  useFrame((_, delta) =>
+  useFrame((_, delta) => {
     group.current.children.forEach(
       (group) =>
         (group.children[0].material.uniforms.dashOffset.value -= delta * 10)
-    )
-  );
+    );
+  });
+
   return (
     <context.Provider value={set}>
       <group ref={group}>
@@ -74,13 +72,14 @@ export function Nodes({ children }) {
               {...line}
               color="#54CF68"
               dashed
-              dashScale={20}
-              gapSize={4}
+              dashScale={22}
+              gapSize={3}
+              lineWidth={2}
             />
             <QuadraticBezierLine
               {...line}
               color="#54CF68"
-              lineWidth={1}
+              lineWidth={2}
               transparent
               opacity={0.1}
             />
@@ -111,10 +110,10 @@ export const Node = forwardRef(
     },
     ref
   ) => {
-    const texture = useTexture("/team-members/alamin_bro.jpg");
     const set = useContext(context);
     const { size, camera } = useThree();
     const [pos, setPos] = useState(() => new THREE.Vector3(...position));
+    const [newScale, setNewScale] = useState(() => scale);
     const state = useMemo(
       () => ({ position: pos, connectedTo }),
       [pos, connectedTo]
@@ -130,10 +129,38 @@ export const Node = forwardRef(
       () => void (document.body.style.cursor = hovered ? "grab" : "auto"),
       [hovered]
     );
+    // const bind = useDrag(({ down, xy: [x, y] }) => {
+    //   document.body.style.cursor = down ? "grabbing" : "grab";
+    //   if (!down) {
+    //     setPos(new THREE.Vector3(...position));
+    //     setNewScale(scale);
+    //   } else {
+    //     setPos(
+    //       new THREE.Vector3(
+    //         (x / size.width) * 2 - 1,
+    //         -(y / size.height) * 2 + 1,
+    //         0
+    //       )
+    //         .unproject(camera)
+    //         .multiply({ x: 1, y: 1, z: 0 })
+    //         .clone()
+    //     );
+    //     setNewScale(2);
+    //   }
+    // });
     const bind = useDrag(({ down, xy: [x, y] }) => {
       document.body.style.cursor = down ? "grabbing" : "grab";
       if (!down) {
-        setPos(new THREE.Vector3(...position));
+        new TWEEN.Tween(pos)
+          .to(new THREE.Vector3(...position), 1000)
+          .easing(TWEEN.Easing.Elastic.Out)
+          .onUpdate(() => setPos(pos.clone()))
+          .start();
+        new TWEEN.Tween(newScale)
+          .to(scale, 500)
+          .easing(TWEEN.Easing.Elastic.Out)
+          .onUpdate(() => setNewScale(scale))
+          .start();
       } else {
         setPos(
           new THREE.Vector3(
@@ -145,10 +172,19 @@ export const Node = forwardRef(
             .multiply({ x: 1, y: 1, z: 0 })
             .clone()
         );
+        new TWEEN.Tween(scale)
+          .to(2, 500)
+          .easing(TWEEN.Easing.Elastic.Out)
+          .onUpdate(() => setNewScale(2))
+          .start();
       }
     });
+
+    useFrame(() => {
+      TWEEN.update();
+    });
     return (
-      <Float speed={1} floatingRange={[-0.15, 0.15]}>
+      <>
         <Circle
           ref={ref}
           {...bind()}
@@ -156,29 +192,57 @@ export const Node = forwardRef(
           radius={0.5}
           color={color}
           position={pos}
-          scale={scale}
+          scale={newScale}
           {...props}
         >
           <Circle
             radius={0.25}
             position={[0, 0, 0.1]}
-            onPointerOver={() => setHovered(true)}
+            onPointerOver={(event) => {
+              event.stopPropagation();
+              setHovered(true);
+            }}
             onPointerOut={() => setHovered(false)}
             color={hovered ? "#ff1050" : color}
           >
-            <mesh
-              position={[0, 0, 0.3]}
-              rotation={[Math.PI * 0.5, Math.PI * 0.5, 0.1]}
-            >
-              <cylinderGeometry args={[0.5, 0.5, 0.2, 32, 1]} />
-              <meshBasicMaterial map={image} toneMapped={false} />
-            </mesh>
+            <Float>
+              <group>
+                {hovered ? (
+                  <group position={[0, 0.75, 0.5]}>
+                    <Center>
+                      <Text3D
+                        size={0.2}
+                        height={0.2}
+                        font={"/font.json"}
+                        curveSegments={12}
+                        bevelEnabled
+                        bevelThickness={0.015}
+                        bevelSize={0.015}
+                        bevelOffset={0}
+                        bevelSegments={5}
+                        letterSpacing={0.035}
+                      >
+                        {name}
+                        <meshNormalMaterial />
+                      </Text3D>
+                    </Center>
+                  </group>
+                ) : null}
+                <mesh
+                  position={[0, 0, 0.3]}
+                  rotation={[Math.PI * 0.5, Math.PI * 0.5, 0.1]}
+                >
+                  <cylinderGeometry args={[0.5, 0.5, 0.2, 32, 1]} />
+                  <meshBasicMaterial map={image} toneMapped={false} />
+                </mesh>
+              </group>
+            </Float>
             {/* <Text position={[0, 0, 1]} fontSize={0.25}>
               {name}
             </Text> */}
           </Circle>
         </Circle>
-      </Float>
+      </>
     );
   }
 );
